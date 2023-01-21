@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+import os
+import shutil
+from fastapi import FastAPI, BackgroundTasks, UploadFile, File, Query, Path
 from models import *
 from typing import List
+from pydantic import Required
 import pyodbc
 
 
@@ -10,6 +13,15 @@ app = FastAPI()
 constr = "DRIVER={SQL Server}; SERVER=DESKTOP-JTGU3TR\\SQLEXPRESS; DATABASE=PhotoGallery; UID=abc; PWD=1234"
 conn = pyodbc.connect(constr)
 cursor = conn.cursor()
+
+# Utilities
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Utitlity Function
+
+
+def Allowed_File(filename: str):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.get('/')
@@ -40,3 +52,15 @@ def getAllPhotos():
                      path=row.path, date_taken=row.date_taken, last_modified_date=row.last_modified_date)
         photos.append(item)
     return photos
+
+
+@app.post('/uploadPhoto')
+def uploadPhoto(background_task: BackgroundTasks, files: List[UploadFile] = File(default=Required, title="Upload Image")):
+    for file in files:
+        if Allowed_File(file.filename):
+            fp = open(f'Images/{file.filename}', 'w')
+            fp.close()
+            with open(f'Images/{file.filename}', 'wb+') as buffer:
+                shutil.copyfileobj(file.file, buffer)
+
+    return "File Uploaded Successfully"
