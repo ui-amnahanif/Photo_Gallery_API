@@ -1,6 +1,6 @@
 import os
 import shutil
-from fastapi import FastAPI, BackgroundTasks, UploadFile, File, Query, Path
+from fastapi import FastAPI, UploadFile, File, Query, Path
 from models import *
 from typing import List
 from pydantic import Required
@@ -55,12 +55,11 @@ def getAllPhotos():
 
 
 @app.post('/uploadPhoto')
-def uploadPhoto(background_task: BackgroundTasks, files: List[UploadFile] = File(default=Required, title="Upload Image")):
+def uploadPhoto(files: List[UploadFile]):
     for file in files:
         if Allowed_File(file.filename):
             fp = open(f'Images/{file.filename}', 'w')
             fp.close()
             with open(f'Images/{file.filename}', 'wb+') as buffer:
                 shutil.copyfileobj(file.file, buffer)
-
     return "File Uploaded Successfully"
