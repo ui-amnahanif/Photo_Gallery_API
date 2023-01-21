@@ -14,14 +14,14 @@ class Person(BaseModel):
 
 
 class Photo(BaseModel):
-    id: int
+    id: Optional[int]
     title: str
     event: Optional[str]
     lat: Optional[float]
     lng: Optional[float]
-    path: str
-    date_taken: datetime.date
-    last_modified_date: datetime.date
+    path: Optional[str]
+    date_taken: datetime.datetime
+    last_modified_date: datetime.datetime
 
 
 class AlbumPhoto(BaseModel):

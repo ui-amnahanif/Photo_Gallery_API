@@ -1,6 +1,6 @@
 import os
 import shutil
-from fastapi import FastAPI, UploadFile, File, Query, Path
+from fastapi import FastAPI, UploadFile, File, Query, Path, Form, Depends
 from models import *
 from typing import List
 from pydantic import Required
@@ -55,11 +55,24 @@ def getAllPhotos():
 
 
 @app.post('/uploadPhoto')
-def uploadPhoto(files: List[UploadFile]):
-    for file in files:
-        if Allowed_File(file.filename):
-            fp = open(f'Images/{file.filename}', 'w')
-            fp.close()
-            with open(f'Images/{file.filename}', 'wb+') as buffer:
-                shutil.copyfileobj(file.file, buffer)
+def uploadPhoto(file: UploadFile, photoDetail: Photo = Depends()):
+    filePath = f"Images/{file.filename}"
+
+    if Allowed_File(file.filename):
+        fp = open(filePath, 'w')
+        fp.close()
+        with open(filePath, 'wb+') as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+    query = "INSERT INTO Photo(title, event, lat, lng, path, date_taken, last_modified_date) VALUES (?,?,?,?,?,?,?)"
+
+    cursor.execute(query,
+                   photoDetail.title,
+                   photoDetail.event,
+                   photoDetail.lat,
+                   photoDetail.lng,
+                   filePath,
+                   photoDetail.date_taken,
+                   photoDetail.last_modified_date)
+    cursor.commit()
     return "File Uploaded Successfully"
